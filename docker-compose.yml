@@ -78,6 +78,8 @@ services:
       APP__DEBUG: "true"
       DATABASE__URL: postgresql+asyncpg://postgres:postgres@postgres:5432/app
       DATABASE__ECHO: "false"
+      DATABASE__MODELS: app.models
+      DATABASE__RUN_MIGRATIONS: "true"
       STORAGE__BACKEND: s3
       STORAGE__BUCKET: app
       STORAGE__ENDPOINT_URL: http://minio:9000

@@ -31,7 +31,7 @@ Router  →  Service  →  UnitOfWork
 | --- | --- |
 | `backend-toolkit-config` | Typed `.env` (`DATABASE__*`, `STORAGE__*`, `AUTH__*`, …) |
 | `backend-toolkit-logger` | Request-scoped structured logs |
-| `backend-toolkit-database` | Async engine, `Base`, `get_session` |
+| `backend-toolkit-database` | Async engine, `Base`, `get_session`, Alembic (`toolkit-db`) |
 | `backend-toolkit-storage` | File/S3 blobs + `attachment_field()` |
 | `backend-toolkit-auth` | Login, user/role admin at `/users` and `/roles`, `get_current_user` / `require_roles` |
 
@@ -60,7 +60,7 @@ Then copy the Note stack:
 2. Expose it on `UnitOfWork`
 3. `services/invoice.py` — create/update/delete, call `store_attachment` after `flush`
 4. `routers/invoices.py` — multipart form + `Depends(get_invoice_service)` + `Depends(get_current_user)`
-5. Import the model from `app.main` so `create_all()` sees the table
+5. Export the model from `app.models` so Alembic autogenerate sees the table, then `toolkit-db revision -m "..."` and `toolkit-db upgrade`
 
 `GenericSqlRepository.delete` already calls `delete_attachments_for`. After `uow.commit()`, queued blobs are removed from disk or MinIO. Deleting a parent row therefore removes both attachment rows and stored files.
 
@@ -92,12 +92,16 @@ Note routes require a bearer token. Get one from `POST /auth/login`, then click 
 
 Routers inject `CurrentUser` with `Depends(get_current_user)` or `Depends(require_roles("admin"))`.
 
-## Schema change
+## Migrations
 
-Older versions stored file columns on `notes`. This app uses an `attachments` table. Drop the old table once:
+`backend-toolkit-database` owns Alembic. This app only keeps `alembic.ini`, `alembic/env.py`, and revision files.
 
-```sql
-DROP TABLE IF EXISTS notes;
+```bash
+uv run toolkit-db revision -m "add invoices"
+uv run toolkit-db upgrade
+uv run toolkit-db current
 ```
 
-`auto_create_tables` will recreate `notes` and `attachments` on the next start. Do not use that flag in production; use migrations instead.
+`app/main.py` calls `setup_database(..., run_migrations=True)`, and the Docker image runs `python -m backend_toolkit_database upgrade` before uvicorn. Prefer the CLI in production so multiple workers do not race.
+
+Do not turn `auto_create_tables` back on once revisions exist. If the database was created by that flag, run `uv run toolkit-db stamp head` once.

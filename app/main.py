@@ -19,7 +19,7 @@ setup_logging(app)
 setup_database(
     app,
     settings=settings.database,
-    auto_create_tables=True,
+    run_migrations=True,
 )
 setup_storage(app, settings=settings.storage)
 setup_auth(app, settings=settings.auth)

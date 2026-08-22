@@ -4,7 +4,7 @@ Template FastAPI app that wires the toolkit packages with a Repository / Unit of
 
 - `backend-toolkit-config` — typed `.env` settings
 - `backend-toolkit-logger` — request-scoped structured logs
-- `backend-toolkit-database` — PostgreSQL via SQLAlchemy 2
+- `backend-toolkit-database` — PostgreSQL via SQLAlchemy 2, plus Alembic (`toolkit-db`)
 - `backend-toolkit-storage` — local files or MinIO, plus `attachment_field()`
 - `backend-toolkit-auth` — login, current user, and admin user/role CRUD
 
@@ -74,11 +74,17 @@ uv sync
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-If you ran the previous notes schema, drop it once:
+Schema changes go through Alembic. After editing models:
 
-```sql
-DROP TABLE IF EXISTS notes;
-DROP TABLE IF EXISTS attachments;
+```bash
+uv run toolkit-db revision -m "describe the change"
+uv run toolkit-db upgrade
+```
+
+Docker Compose runs `upgrade` before the API starts. Local `uvicorn` does the same because `run_migrations=True`. If this database already has `notes` and `attachments` from the old `auto_create_tables` flag, mark the first revision without re-running SQL:
+
+```bash
+uv run toolkit-db stamp head
 ```
 
 ## Endpoints
