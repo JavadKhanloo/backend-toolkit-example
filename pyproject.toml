@@ -1,13 +1,14 @@
 [project]
 name = "backend-toolkit-example"
 version = "0.1.0"
-description = "Example FastAPI app using backend-toolkit config, logger, and database packages."
+description = "Example FastAPI app using backend-toolkit config, logger, database, and storage packages."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "backend-toolkit-config",
     "backend-toolkit-database",
     "backend-toolkit-logger",
+    "backend-toolkit-storage",
     "fastapi[standard]>=0.141.1",
 ]
 
@@ -15,6 +16,7 @@ dependencies = [
 backend-toolkit-config = { path = "../backend-toolkit-config", editable = true }
 backend-toolkit-database = { path = "../backend-toolkit-database", editable = true }
 backend-toolkit-logger = { path = "../backend-toolkit-logger", editable = true }
+backend-toolkit-storage = { path = "../backend-toolkit-storage", editable = true }
 
 [build-system]
 requires = ["hatchling"]
