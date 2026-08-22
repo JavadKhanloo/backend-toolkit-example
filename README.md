@@ -1,64 +1,95 @@
 # backend-toolkit-example
 
-Minimal FastAPI app that wires together:
+Template FastAPI app that wires the toolkit packages with a Repository / Unit of Work layout. Notes have a single **cover** file and many **files**, stored in a shared `attachments` table (see [GUIDE.md](GUIDE.md)).
 
-- `backend-toolkit-config` for typed `.env` settings
-- `backend-toolkit-logger` for request-scoped structured logs
-- `backend-toolkit-database` for PostgreSQL via SQLAlchemy 2
-- `backend-toolkit-storage` for note attachments (local files or MinIO)
+- `backend-toolkit-config` — typed `.env` settings
+- `backend-toolkit-logger` — request-scoped structured logs
+- `backend-toolkit-database` — PostgreSQL via SQLAlchemy 2
+- `backend-toolkit-storage` — local files or MinIO, plus `attachment_field()`
+- `backend-toolkit-auth` — Keycloak login, JWT validation, and role checks
 
-## Requirements
+## Docker Compose (recommended)
 
-- Python 3.14+
-- PostgreSQL on `localhost:5432`
-
-Create the `app` database once:
-
-```sql
-CREATE DATABASE app;
-```
-
-The default storage backend is the local filesystem (`./storage`). To use MinIO instead, start it and set `STORAGE__BACKEND=s3` in `.env`:
+This stack starts PostgreSQL, MinIO, Keycloak (with the `app` realm), and the API:
 
 ```bash
-docker run -p 9000:9000 -p 9001:9001 \
-  -e MINIO_ROOT_USER=minioadmin \
-  -e MINIO_ROOT_PASSWORD=minioadmin \
-  minio/minio server /data --console-address ":9001"
+docker compose up --build
 ```
 
-## Setup
+Open [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+
+| Service | URL |
+| --- | --- |
+| API | http://127.0.0.1:8000 |
+| Keycloak | http://127.0.0.1:8080 (admin / admin) |
+| MinIO console | http://127.0.0.1:9001 (minioadmin / minioadmin) |
+| PostgreSQL | localhost:5432 (`app` database) |
+
+Demo users in the imported `app` realm:
+
+| Username | Password | Roles |
+| --- | --- | --- |
+| `alice` | `alice-password` | `user` |
+| `admin` | `admin-password` | `user`, `admin` |
 
 ```bash
+TOKEN=$(curl -s http://127.0.0.1:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"alice","password":"alice-password"}' | python -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/auth/me -H "Authorization: Bearer $TOKEN"
+curl -X POST http://127.0.0.1:8000/notes \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "title=hello" -F "body=from the toolkit" -F "cover=@README.md"
+curl http://127.0.0.1:8000/notes -H "Authorization: Bearer $TOKEN"
+```
+
+Delete endpoints need the admin user. Infrastructure only (run the API with `uv` on the host):
+
+```bash
+docker compose up postgres minio keycloak keycloak-init
 cp .env.example .env
-```
-
-Edit `DATABASE__URL` in `.env` if your PostgreSQL user or password is not `postgres` / `postgres`.
-
-```bash
 uv sync
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Endpoints
+## Local setup without Compose
 
-| Method | Path | Description |
-| --- | --- | --- |
-| `GET` | `/health` | App settings plus a database and storage ping |
-| `POST` | `/notes` | Create a note |
-| `GET` | `/notes` | List notes |
-| `GET` | `/notes/{id}` | Read one note |
-| `POST` | `/notes/{id}/attachment` | Upload or replace a file attachment |
-| `GET` | `/notes/{id}/attachment` | Download the attachment |
-| `DELETE` | `/notes/{id}/attachment` | Remove the attachment |
+- Python 3.14+
+- PostgreSQL on `localhost:5432` with database `app`
+- Keycloak on `localhost:8080` with realm `app` and client `backend`
+- Optional MinIO on `localhost:9000`
 
 ```bash
-curl http://127.0.0.1:8000/health
-curl -X POST http://127.0.0.1:8000/notes -H "Content-Type: application/json" -d "{\"title\":\"hello\",\"body\":\"from the toolkit\"}"
-curl http://127.0.0.1:8000/notes
-curl -X POST http://127.0.0.1:8000/notes/1/attachment -F "file=@README.md"
-curl -O -J http://127.0.0.1:8000/notes/1/attachment
-curl -X DELETE http://127.0.0.1:8000/notes/1/attachment
+cp .env.example .env
+uv sync
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Logs go to the console and to `logs/app.log`. Uploaded files go to `./storage` when using the file backend.
+If you ran the previous notes schema, drop it once:
+
+```sql
+DROP TABLE IF EXISTS notes;
+DROP TABLE IF EXISTS attachments;
+```
+
+## Endpoints
+
+| Method | Path | Auth | Description |
+| --- | --- | --- | --- |
+| `GET` | `/health` | public | Settings plus database, storage, and auth ping |
+| `POST` | `/auth/login` | public | Password grant against Keycloak |
+| `POST` | `/auth/refresh` | public | Exchange a refresh token |
+| `POST` | `/auth/logout` | public | Invalidate a refresh token |
+| `GET` | `/auth/me` | bearer | Current user from the access token |
+| `POST` | `/notes` | bearer | Create a note (`title`, `body`, optional `cover`, optional `files`) |
+| `GET` | `/notes` | bearer | List notes with attachment metadata |
+| `GET` | `/notes/{id}` | bearer | Read one note |
+| `DELETE` | `/notes/{id}` | admin | Delete the note, attachment rows, and stored files |
+| `POST` | `/notes/{id}/cover` | bearer | Replace the cover file |
+| `POST` | `/notes/{id}/files` | bearer | Add more files |
+| `GET` | `/notes/{id}/attachments/{attachment_id}` | bearer | Download one file |
+| `DELETE` | `/notes/{id}/attachments/{attachment_id}` | admin | Remove one file |
+
+Logs go to the console and `logs/app.log`. How to add another entity with files is documented in [GUIDE.md](GUIDE.md).
