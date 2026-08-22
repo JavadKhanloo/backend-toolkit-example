@@ -221,3 +221,6 @@ __marimo__/
 
 # Application logs
 logs/
+
+# Local file-store data
+/storage/

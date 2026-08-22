@@ -5,6 +5,7 @@ Minimal FastAPI app that wires together:
 - `backend-toolkit-config` for typed `.env` settings
 - `backend-toolkit-logger` for request-scoped structured logs
 - `backend-toolkit-database` for PostgreSQL via SQLAlchemy 2
+- `backend-toolkit-storage` for note attachments (local files or MinIO)
 
 ## Requirements
 
@@ -15,6 +16,15 @@ Create the `app` database once:
 
 ```sql
 CREATE DATABASE app;
+```
+
+The default storage backend is the local filesystem (`./storage`). To use MinIO instead, start it and set `STORAGE__BACKEND=s3` in `.env`:
+
+```bash
+docker run -p 9000:9000 -p 9001:9001 \
+  -e MINIO_ROOT_USER=minioadmin \
+  -e MINIO_ROOT_PASSWORD=minioadmin \
+  minio/minio server /data --console-address ":9001"
 ```
 
 ## Setup
@@ -34,14 +44,21 @@ uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 | Method | Path | Description |
 | --- | --- | --- |
-| `GET` | `/health` | App settings plus a `SELECT 1` database ping |
+| `GET` | `/health` | App settings plus a database and storage ping |
 | `POST` | `/notes` | Create a note |
 | `GET` | `/notes` | List notes |
+| `GET` | `/notes/{id}` | Read one note |
+| `POST` | `/notes/{id}/attachment` | Upload or replace a file attachment |
+| `GET` | `/notes/{id}/attachment` | Download the attachment |
+| `DELETE` | `/notes/{id}/attachment` | Remove the attachment |
 
 ```bash
 curl http://127.0.0.1:8000/health
 curl -X POST http://127.0.0.1:8000/notes -H "Content-Type: application/json" -d "{\"title\":\"hello\",\"body\":\"from the toolkit\"}"
 curl http://127.0.0.1:8000/notes
+curl -X POST http://127.0.0.1:8000/notes/1/attachment -F "file=@README.md"
+curl -O -J http://127.0.0.1:8000/notes/1/attachment
+curl -X DELETE http://127.0.0.1:8000/notes/1/attachment
 ```
 
-Logs go to the console and to `logs/app.log`.
+Logs go to the console and to `logs/app.log`. Uploaded files go to `./storage` when using the file backend.
