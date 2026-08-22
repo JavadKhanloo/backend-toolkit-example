@@ -33,7 +33,7 @@ Router  →  Service  →  UnitOfWork
 | `backend-toolkit-logger` | Request-scoped structured logs |
 | `backend-toolkit-database` | Async engine, `Base`, `get_session` |
 | `backend-toolkit-storage` | File/S3 blobs + `attachment_field()` |
-| `backend-toolkit-auth` | Keycloak login, JWT validation, `get_current_user` / `require_roles` |
+| `backend-toolkit-auth` | Login, user/role admin at `/users` and `/roles`, `get_current_user` / `require_roles` |
 
 ## Adding a model with files (Django-style)
 
@@ -84,11 +84,13 @@ Do not commit inside a repository.
 
 `GET /notes/{id}` returns nested `cover` and `files` metadata. Download bytes from `GET /notes/{id}/attachments/{attachment_id}`.
 
-Note routes require a Keycloak bearer token. Get one from `POST /auth/login`, then click Authorize in Swagger. Delete endpoints require the `admin` realm role.
+Note routes require a bearer token. Get one from `POST /auth/login`, then click Authorize in Swagger. Delete endpoints require the `admin` role.
 
-## Authentication
+## Authentication and identity
 
-`setup_fastapi` from `backend-toolkit-auth` mounts `/auth/login`, `/auth/refresh`, `/auth/logout`, and `/auth/me`. Routers inject `CurrentUser` with `Depends(get_current_user)` or `Depends(require_roles("admin"))`. The toolkit talks to Keycloak for password grants and verifies RS256 access tokens against the realm JWKS.
+`setup_fastapi` from `backend-toolkit-auth` mounts login routes under `/auth` and identity admin routes under `/users` and `/roles`. After the stack starts, log in as `admin` and create users, roles, and assignments from FastAPI. Callers do not use the identity provider UI.
+
+Routers inject `CurrentUser` with `Depends(get_current_user)` or `Depends(require_roles("admin"))`.
 
 ## Schema change
 

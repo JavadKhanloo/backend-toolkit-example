@@ -1,6 +1,6 @@
 [project]
 name = "backend-toolkit-example"
-version = "0.1.0"
+version = "0.2.0"
 description = "Example FastAPI app using backend-toolkit config, logger, database, storage, and auth packages."
 readme = "README.md"
 requires-python = ">=3.14"
@@ -19,6 +19,18 @@ backend-toolkit-config = { path = "../backend-toolkit-config", editable = true }
 backend-toolkit-database = { path = "../backend-toolkit-database", editable = true }
 backend-toolkit-logger = { path = "../backend-toolkit-logger", editable = true }
 backend-toolkit-storage = { path = "../backend-toolkit-storage", editable = true }
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.0.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [build-system]
 requires = ["hatchling"]
