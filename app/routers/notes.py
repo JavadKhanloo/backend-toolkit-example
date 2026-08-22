@@ -2,6 +2,7 @@ from typing import Annotated
 
 from backend_toolkit_auth import CurrentUser, get_current_user, require_roles
 from backend_toolkit_logger import get_logger
+from backend_toolkit_pagination import Page, PageParams, get_page_params
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from starlette.responses import Response
 
@@ -50,14 +51,15 @@ async def create_note(
     return NoteRead.model_validate(note)
 
 
-@router.get("", response_model=list[NoteRead])
+@router.get("", response_model=Page[NoteRead])
 async def list_notes(
+    params: PageParams = Depends(get_page_params),
     service: NoteService = Depends(get_note_service),
     user: CurrentUser = Depends(get_current_user),
-) -> list[NoteRead]:
-    notes = await service.list_notes()
-    logger.info("notes_listed", count=len(notes), user=user.username)
-    return [NoteRead.model_validate(note) for note in notes]
+) -> Page[NoteRead]:
+    page = await service.list_notes(params)
+    logger.info("notes_listed", count=page.total, user=user.username)
+    return page.map(NoteRead.model_validate)
 
 
 @router.get("/{note_id}", response_model=NoteRead)

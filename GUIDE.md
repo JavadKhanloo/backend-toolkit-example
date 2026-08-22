@@ -32,6 +32,7 @@ Router  →  Service  →  UnitOfWork
 | `backend-toolkit-config` | Typed `.env` (`DATABASE__*`, `STORAGE__*`, `AUTH__*`, …) |
 | `backend-toolkit-logger` | Request-scoped structured logs |
 | `backend-toolkit-database` | Async engine, `Base`, `get_session`, Alembic (`toolkit-db`) |
+| `backend-toolkit-pagination` | `Page` / `page` / `page_size` for every list endpoint |
 | `backend-toolkit-storage` | File/S3 blobs + `attachment_field()` |
 | `backend-toolkit-auth` | Login, user/role admin at `/users` and `/roles`, `get_current_user` / `require_roles` |
 
@@ -81,6 +82,8 @@ Do not commit inside a repository.
 - `title`, `body` — text
 - `cover` — optional single file
 - `files` — optional extra files (choose multiple)
+
+`GET /notes` returns a `Page` (`items`, `total`, `page`, `page_size`, `pages`, `has_next`, `has_previous`). The same envelope is used by `/users` and `/roles`.
 
 `GET /notes/{id}` returns nested `cover` and `files` metadata. Download bytes from `GET /notes/{id}/attachments/{attachment_id}`.
 

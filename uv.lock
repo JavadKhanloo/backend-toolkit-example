@@ -72,9 +72,10 @@ wheels = [
 
 [[package]]
 name = "backend-toolkit-auth"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "../backend-toolkit-auth" }
 dependencies = [
+    { name = "backend-toolkit-pagination" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "pydantic-settings" },
@@ -83,6 +84,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "backend-toolkit-pagination", editable = "../backend-toolkit-pagination" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
@@ -100,7 +102,7 @@ dev = [
 
 [[package]]
 name = "backend-toolkit-config"
-version = "0.3.0"
+version = "0.4.0"
 source = { editable = "../backend-toolkit-config" }
 dependencies = [
     { name = "fastapi", extra = ["standard"] },
@@ -154,13 +156,14 @@ dev = [
 
 [[package]]
 name = "backend-toolkit-example"
-version = "0.3.0"
+version = "0.4.0"
 source = { editable = "." }
 dependencies = [
     { name = "backend-toolkit-auth" },
     { name = "backend-toolkit-config" },
     { name = "backend-toolkit-database" },
     { name = "backend-toolkit-logger" },
+    { name = "backend-toolkit-pagination" },
     { name = "backend-toolkit-storage" },
     { name = "fastapi", extra = ["standard"] },
 ]
@@ -178,6 +181,7 @@ requires-dist = [
     { name = "backend-toolkit-config", editable = "../backend-toolkit-config" },
     { name = "backend-toolkit-database", editable = "../backend-toolkit-database" },
     { name = "backend-toolkit-logger", editable = "../backend-toolkit-logger" },
+    { name = "backend-toolkit-pagination", editable = "../backend-toolkit-pagination" },
     { name = "backend-toolkit-storage", editable = "../backend-toolkit-storage" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.141.1" },
 ]
@@ -210,6 +214,34 @@ requires-dist = [
 dev = [
     { name = "httpx2", specifier = ">=2.0.0" },
     { name = "pytest", specifier = ">=9.1.1" },
+]
+
+[[package]]
+name = "backend-toolkit-pagination"
+version = "0.1.0"
+source = { editable = "../backend-toolkit-pagination" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.141.1" },
+    { name = "pydantic", specifier = ">=2.13.4" },
+    { name = "pydantic-settings", specifier = ">=2.15.0" },
+    { name = "sqlalchemy", extras = ["asyncio"], marker = "extra == 'sqlalchemy'", specifier = ">=2.0.40" },
+]
+provides-extras = ["sqlalchemy"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "aiosqlite", specifier = ">=0.21.0" },
+    { name = "httpx2", specifier = ">=2.0.0" },
+    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest-asyncio", specifier = ">=1.4.0" },
+    { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.40" },
 ]
 
 [[package]]

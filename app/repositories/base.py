@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar
 
+from backend_toolkit_pagination import Page, PageParams
+from backend_toolkit_pagination.sqlalchemy import paginate_select
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +18,10 @@ class GenericRepository(ABC, Generic[T]):
 
     @abstractmethod
     async def list(self, **filters: Any) -> list[T]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def list_page(self, params: PageParams, **filters: Any) -> Page[T]:
         raise NotImplementedError
 
     @abstractmethod
@@ -58,6 +64,19 @@ class GenericSqlRepository(GenericRepository[T]):
         )
         result = await self.session.execute(stmt)
         return list(result.scalars())
+
+    async def list_page(self, params: PageParams, **filters: Any) -> Page[T]:
+        stmt = select(self.model)
+        for key, value in filters.items():
+            column = getattr(self.model, key, None)
+            if column is None:
+                raise ValueError(f"Unknown filter {key!r} for {self.model.__name__}")
+            stmt = stmt.where(column == value)
+
+        stmt = stmt.options(*attachment_load_options(self.model)).order_by(
+            self.model.id
+        )
+        return await paginate_select(self.session, stmt, params, unique=True)
 
     async def add(self, record: T) -> T:
         self.session.add(record)

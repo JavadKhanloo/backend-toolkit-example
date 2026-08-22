@@ -5,6 +5,7 @@ Template FastAPI app that wires the toolkit packages with a Repository / Unit of
 - `backend-toolkit-config` — typed `.env` settings
 - `backend-toolkit-logger` — request-scoped structured logs
 - `backend-toolkit-database` — PostgreSQL via SQLAlchemy 2, plus Alembic (`toolkit-db`)
+- `backend-toolkit-pagination` — shared `page` / `page_size` list envelope
 - `backend-toolkit-storage` — local files or MinIO, plus `attachment_field()`
 - `backend-toolkit-auth` — login, current user, and admin user/role CRUD
 
@@ -96,7 +97,7 @@ uv run toolkit-db stamp head
 | `POST` | `/auth/refresh` | public | Exchange a refresh token |
 | `POST` | `/auth/logout` | public | Invalidate a refresh token |
 | `GET` | `/auth/me` | bearer | Current user from the access token |
-| `GET` | `/users` | admin | List users |
+| `GET` | `/users` | admin | List users (`page`, `page_size`) |
 | `POST` | `/users` | admin | Create a user |
 | `GET` | `/users/{id}` | admin | Read one user |
 | `PATCH` | `/users/{id}` | admin | Update a user |
@@ -104,13 +105,13 @@ uv run toolkit-db stamp head
 | `POST` | `/users/{id}/roles` | admin | Add roles |
 | `PUT` | `/users/{id}/roles` | admin | Replace roles |
 | `DELETE` | `/users/{id}/roles/{name}` | admin | Remove one role |
-| `GET` | `/roles` | admin | List roles |
+| `GET` | `/roles` | admin | List roles (`page`, `page_size`) |
 | `POST` | `/roles` | admin | Create a role |
 | `GET` | `/roles/{name}` | admin | Read one role |
 | `PATCH` | `/roles/{name}` | admin | Update a role |
 | `DELETE` | `/roles/{name}` | admin | Delete a role |
 | `POST` | `/notes` | bearer | Create a note (`title`, `body`, optional `cover`, optional `files`) |
-| `GET` | `/notes` | bearer | List notes with attachment metadata |
+| `GET` | `/notes` | bearer | List notes (`page`, `page_size`) |
 | `GET` | `/notes/{id}` | bearer | Read one note |
 | `DELETE` | `/notes/{id}` | admin | Delete the note, attachment rows, and stored files |
 | `POST` | `/notes/{id}/cover` | bearer | Replace the cover file |

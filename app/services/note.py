@@ -1,3 +1,4 @@
+from backend_toolkit_pagination import Page, PageParams
 from fastapi import UploadFile
 
 from backend_toolkit_storage import (
@@ -17,8 +18,8 @@ class NoteService:
         self.uow = uow
         self.storage = storage
 
-    async def list_notes(self) -> list[Note]:
-        return await self.uow.notes.list()
+    async def list_notes(self, params: PageParams) -> Page[Note]:
+        return await self.uow.notes.list_page(params)
 
     async def get_note(self, note_id: int) -> Note:
         note = await self.uow.notes.get_by_id(note_id)

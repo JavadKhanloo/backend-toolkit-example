@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from backend_toolkit_auth import AuthSettings, MemoryBackend, setup_fastapi
+from backend_toolkit_pagination import Page, PageParams, paginate
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -14,8 +15,8 @@ class FakeNoteService:
         self.notes: dict[int, SimpleNamespace] = {}
         self._next_id = 1
 
-    async def list_notes(self) -> list[SimpleNamespace]:
-        return list(self.notes.values())
+    async def list_notes(self, params: PageParams) -> Page[SimpleNamespace]:
+        return paginate(list(self.notes.values()), params)
 
     async def get_note(self, note_id: int) -> SimpleNamespace:
         note = self.notes.get(note_id)

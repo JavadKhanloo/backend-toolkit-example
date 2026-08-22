@@ -1,3 +1,4 @@
+from backend_toolkit_pagination import PageParams, paginate
 from fastapi.testclient import TestClient
 
 from app.exceptions import NoteNotFoundError
@@ -21,6 +22,9 @@ class InMemoryNotes:
     async def list(self, **filters):
         return list(self.items)
 
+    async def list_page(self, params: PageParams, **filters):
+        return paginate(self.items, params)
+
     async def get_by_id(self, id: int):
         return next((item for item in self.items if item.id == id), None)
 
@@ -42,8 +46,8 @@ async def test_note_service_creates_and_deletes_notes():
     note = await service.create_note("hello", "from tests")
     assert note.id == 1
     assert note.title == "hello"
-    listed = await service.list_notes()
-    assert [item.title for item in listed] == ["hello"]
+    listed = await service.list_notes(PageParams())
+    assert [item.title for item in listed.items] == ["hello"]
     await service.delete_note(1)
     try:
         await service.get_note(1)
@@ -65,6 +69,17 @@ def test_notes_require_login_and_admin_to_delete():
         )
         assert created.status_code == 200
         note_id = created.json()["id"]
+
+        listed = client.get(
+            "/notes",
+            headers={"Authorization": f"Bearer {alice}"},
+            params={"page": 1, "page_size": 10},
+        )
+        assert listed.status_code == 200
+        body = listed.json()
+        assert body["total"] == 1
+        assert body["page"] == 1
+        assert body["items"][0]["id"] == note_id
 
         forbidden = client.delete(
             f"/notes/{note_id}",

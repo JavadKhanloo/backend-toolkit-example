@@ -12,6 +12,7 @@ COPY backend-toolkit-auth /workspace/backend-toolkit-auth
 COPY backend-toolkit-config /workspace/backend-toolkit-config
 COPY backend-toolkit-database /workspace/backend-toolkit-database
 COPY backend-toolkit-logger /workspace/backend-toolkit-logger
+COPY backend-toolkit-pagination /workspace/backend-toolkit-pagination
 COPY backend-toolkit-storage /workspace/backend-toolkit-storage
 COPY backend-toolkit-example /workspace/backend-toolkit-example
 
