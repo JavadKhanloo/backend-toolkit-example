@@ -79,6 +79,8 @@ def test_notes_require_login_and_admin_to_delete():
         body = listed.json()
         assert body["total"] == 1
         assert body["page"] == 1
+        assert body["page_size"] == 10
+        assert body["has_next"] is False
         assert body["items"][0]["id"] == note_id
 
         forbidden = client.delete(

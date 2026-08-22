@@ -2,11 +2,12 @@ from typing import Annotated
 
 from backend_toolkit_auth import CurrentUser, get_current_user, require_roles
 from backend_toolkit_logger import get_logger
-from backend_toolkit_pagination import Page, PageParams, get_page_params
+from backend_toolkit_pagination import Page, PageParams
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from starlette.responses import Response
 
 from app.dependencies import get_note_service
+from app.pagination import get_page_params
 from app.exceptions import AttachmentNotFoundError, NoteNotFoundError
 from app.schemas import NoteRead
 from app.services import NoteService

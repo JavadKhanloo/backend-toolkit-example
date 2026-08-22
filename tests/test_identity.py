@@ -1,4 +1,5 @@
 from backend_toolkit_auth import AuthSettings, MemoryBackend, setup_fastapi
+from backend_toolkit_pagination import PaginationSettings
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -11,6 +12,11 @@ def _app() -> FastAPI:
         app,
         AuthSettings(backend="memory", _env_file=None),
         backend=MemoryBackend(),
+        page_settings=PaginationSettings(
+            default_page_size=20,
+            max_page_size=100,
+            _env_file=None,
+        ),
     )
     return app
 
@@ -23,6 +29,28 @@ def test_admin_manages_users_and_roles_from_fastapi():
 
         admin = login(client, "admin", "admin-password")
         headers = {"Authorization": f"Bearer {admin}"}
+
+        users = client.get(
+            "/users",
+            headers=headers,
+            params={"page": 1, "page_size": 10},
+        )
+        assert users.status_code == 200
+        listed = users.json()
+        assert listed["total"] == 2
+        assert listed["page"] == 1
+        assert listed["page_size"] == 10
+        assert {user["username"] for user in listed["items"]} == {"admin", "alice"}
+
+        paged = client.get(
+            "/users",
+            headers=headers,
+            params={"page": 1, "page_size": 1},
+        )
+        assert paged.status_code == 200
+        assert paged.json()["pages"] == 2
+        assert len(paged.json()["items"]) == 1
+        assert paged.json()["has_next"] is True
 
         role = client.post(
             "/roles",

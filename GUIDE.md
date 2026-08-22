@@ -7,6 +7,7 @@ This example is a template for new backends. It follows the Repository and Unit 
 ```
 app/
   main.py                 FastAPI app, toolkit setup, routers
+  pagination.py           Shared `page` / `page_size` from `PAGE__*`
   dependencies.py         Unit of Work and service injection
   exceptions.py           Domain errors mapped to HTTP 404 in routers
   models/                 SQLAlchemy tables
@@ -83,7 +84,7 @@ Do not commit inside a repository.
 - `cover` — optional single file
 - `files` — optional extra files (choose multiple)
 
-`GET /notes` returns a `Page` (`items`, `total`, `page`, `page_size`, `pages`, `has_next`, `has_previous`). The same envelope is used by `/users` and `/roles`.
+`GET /notes`, `GET /users`, and `GET /roles` share one `Page` envelope (`items`, `total`, `page`, `page_size`, `pages`, `has_next`, `has_previous`). `main.py` calls `configure_pagination(settings.page)` and passes the same group to `setup_auth(..., page_settings=settings.page)` so `PAGE__DEFAULT_PAGE_SIZE` and `PAGE__MAX_PAGE_SIZE` apply everywhere.
 
 `GET /notes/{id}` returns nested `cover` and `files` metadata. Download bytes from `GET /notes/{id}/attachments/{attachment_id}`.
 

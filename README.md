@@ -40,7 +40,8 @@ TOKEN=$(curl -s http://127.0.0.1:8000/auth/login \
   -d '{"username":"admin","password":"admin-password"}' | python -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 
 curl http://127.0.0.1:8000/health
-curl http://127.0.0.1:8000/users -H "Authorization: Bearer $TOKEN"
+curl "http://127.0.0.1:8000/users?page=1&page_size=10" -H "Authorization: Bearer $TOKEN"
+curl "http://127.0.0.1:8000/notes?page=1&page_size=10" -H "Authorization: Bearer $TOKEN"
 curl -X POST http://127.0.0.1:8000/roles \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \

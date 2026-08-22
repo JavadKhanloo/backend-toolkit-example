@@ -1,11 +1,12 @@
 from types import SimpleNamespace
 
 from backend_toolkit_auth import AuthSettings, MemoryBackend, setup_fastapi
-from backend_toolkit_pagination import Page, PageParams, paginate
+from backend_toolkit_pagination import Page, PageParams, PaginationSettings, paginate
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.dependencies import get_note_service
+from app.pagination import configure_pagination
 from app.exceptions import NoteNotFoundError
 from app.routers import notes_router
 
@@ -42,11 +43,18 @@ class FakeNoteService:
 
 
 def create_example_app(service: FakeNoteService | None = None) -> FastAPI:
+    page_settings = PaginationSettings(
+        default_page_size=20,
+        max_page_size=100,
+        _env_file=None,
+    )
+    configure_pagination(page_settings)
     app = FastAPI(title="Toolkit Example Tests")
     setup_fastapi(
         app,
         AuthSettings(backend="memory", _env_file=None),
         backend=MemoryBackend(),
+        page_settings=page_settings,
     )
     app.include_router(notes_router)
     fake = service or FakeNoteService()
