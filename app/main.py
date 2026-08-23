@@ -17,7 +17,7 @@ app = FastAPI(
     debug=settings.app.debug,
 )
 
-setup_logging(app)
+setup_logging(app, settings=settings.logging)
 setup_database(
     app,
     settings=settings.database,

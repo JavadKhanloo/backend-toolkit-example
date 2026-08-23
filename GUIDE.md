@@ -30,8 +30,8 @@ Router  →  Service  →  UnitOfWork
 
 | Package | Role in this app |
 | --- | --- |
-| `backend-toolkit-config` | Typed `.env` (`DATABASE__*`, `STORAGE__*`, `AUTH__*`, …) |
-| `backend-toolkit-logger` | Request-scoped structured logs |
+| `backend-toolkit-config` | Typed `.env` (`DATABASE__*`, `STORAGE__*`, `AUTH__*`, `LOGGING__*`, …) |
+| `backend-toolkit-logger` | Request-scoped structured logs from `LOGGING__*` |
 | `backend-toolkit-database` | Async engine, `Base`, `get_session`, Alembic (`toolkit-db`) |
 | `backend-toolkit-pagination` | `Page` / `page` / `page_size` for every list endpoint |
 | `backend-toolkit-storage` | File/S3 blobs + `attachment_field()` |

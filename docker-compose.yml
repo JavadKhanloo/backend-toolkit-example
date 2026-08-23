@@ -100,11 +100,13 @@ services:
       AUTH__ADMIN_REALM: master
       PAGE__DEFAULT_PAGE_SIZE: "20"
       PAGE__MAX_PAGE_SIZE: "100"
-      LOG_LEVEL: INFO
-      LOG_ENVIRONMENT: development
-      LOG_COLORS: "false"
-      LOG_CONSOLE: "true"
-      LOG_FILE: logs/app.log
+      LOGGING__LEVEL: INFO
+      LOGGING__ENVIRONMENT: development
+      LOGGING__COLORS: "false"
+      LOGGING__CONSOLE: "true"
+      LOGGING__FILE: logs/app.log
+      LOGGING__FILE_MAX_BYTES: "10485760"
+      LOGGING__FILE_BACKUP_COUNT: "5"
     depends_on:
       postgres:
         condition: service_healthy

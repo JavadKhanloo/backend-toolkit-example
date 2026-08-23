@@ -1,6 +1,6 @@
 [project]
 name = "backend-toolkit-example"
-version = "0.5.0"
+version = "0.6.0"
 description = "Example FastAPI app using backend-toolkit config, logger, database, storage, pagination, and auth packages."
 readme = "README.md"
 requires-python = ">=3.14"
